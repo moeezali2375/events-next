@@ -1,8 +1,11 @@
 import EventContent from "@/components/event-detail/event-content";
 import EventLogistics from "@/components/event-detail/event-logistics";
 import EventSummary from "@/components/event-detail/event-summary";
-import { getEventById } from "@/helpers/api-util";
-import { getAllEvents } from "@/helpers/api-util";
+import {
+  getEventById,
+  getAllEvents,
+  getFeaturedEvents,
+} from "@/helpers/api-util";
 import { useRouter } from "next/router";
 
 export default function DetailedEventPage(props) {
@@ -28,23 +31,27 @@ export default function DetailedEventPage(props) {
 }
 
 export async function getStaticProps(context) {
-  console.log(context);
   const id = context.params.id;
+  console.log(`SSG for page: ${id}`);
   const event = await getEventById(id);
   if (!event) {
     return {
       redirect: {
-        destination: "/no-data",
+        destination: "/",
       },
     };
   }
   return {
-    props: { event: event },
+    props: {
+      event: event,
+    },
+    revalidate: 15,
   };
 }
 
 export async function getStaticPaths() {
-  const events = await getAllEvents();
+  const events = await getFeaturedEvents();
+  // console.log(events); //! HACK: ['e1','e2','e3']
   const ids = events.map((e) => e.id);
   const paths = ids.map((i) => ({
     params: {
@@ -53,6 +60,6 @@ export async function getStaticPaths() {
   }));
   return {
     paths: paths,
-    fallback: true,
+    fallback: ,
   };
 }
